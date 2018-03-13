@@ -2,6 +2,8 @@ package commands;
 
 import static sbcc.Core.*;
 
+import java.util.*;
+
 import javax.swing.*;
 
 import calculator.*;
@@ -15,25 +17,28 @@ public class ClearCommand extends Command {
 	/**
 	 * ClearCommand is unique among UnaryCommands because it will always execute.
 	 */
-	public ClearCommand(State state) {
-		setState(state);
-		setSymbol("ac");
-		execute();
+	public ClearCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+		setModel(model);
+		setCurrentOperationChangedListeners(currentOperationChangedListeners);
+		setDisplayChangedListeners(displayChangedListeners);
+		setInitialDisplayValue(initialDisplayValue);
+		setSymbol("AC");
+
+		setResultStr(roundDoubleString("0"));
+		execute(initialDisplayValue);
 	}
 
 
 	@Override
-	public void execute() {
-		getState().setWaiting(false);
-		getState().setWaitingCommand(null);
-		getState().setNextDigitResetsResultLabel(false);
-		updateResultLabel();
-	}
+	public String execute(String initialDisplayValue) {
+		getModel().setWaiting(false);
+		getModel().setWaitingCommand(null);
+		getModel().setNextDigitResetsResultLabel(false);
+		notifyCurrentOperationChangedListeners(null);
+		notifyDisplayChangedListeners();
 
-
-	@Override
-	public void updateResultLabel() {
-		getState().getResultLabel().setText("0");
+		return getResultStr();
 	}
 
 }

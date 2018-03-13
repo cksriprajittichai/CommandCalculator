@@ -11,7 +11,7 @@ import javax.swing.border.*;
 
 import commands.*;
 
-public class Ui {
+public class Ui implements DisplayValueChangedListener, CurrentOperationChangedListener {
 
 	private JFrame frame;
 	private JPanel panel;
@@ -36,268 +36,222 @@ public class Ui {
 	private JButton eightBtn;
 	private JButton nineBtn;
 
-	private State state;
-	private Invoker invoker;
+	private LinkedList<JButton> binaryOperationBtns = new LinkedList<JButton>();
 
-	private final Color STEPHENS_YELLOW = new Color(51, 51, 51);
+	private Model model;
+	private Controller controller;
+
+	private final Color DEFAULT_BTN_FONT_COLOR = new Color(55, 55, 55);
+	private final Color OPERATION_BTN_BACKGROUND = new Color(9, 86, 164);
 
 
-	private void printCurrentState() {
-		printf("> resultLabel: %s\n", getState().getResultLabel().getText());
-		printf("> isWaiting: %s\n", getState().isWaiting());
-		printf("> waitingCommand: %s\n",
-				getState().getWaitingCommand() == null ? "null" : getState().getWaitingCommand().getClass());
+	@Override
+	public void updateDisplayValue(String updatedDisplay) {
+		getResultLabel().setText(updatedDisplay);
+	}
 
-		int index = 0;
-		for (Command c : getState().getCommandStack()) {
-			printf(">> Stack index %d: %s\n", index++, c.getClass().toGenericString());
+
+	@Override
+	public void updateCurrentCommandDisplay(String commandSymbol) {
+		if (commandSymbol == null) {
+			// There is no waiting command
+			for (JButton b : binaryOperationBtns) {
+				b.setBackground(OPERATION_BTN_BACKGROUND);
+			}
+		} else {
+			for (JButton b : binaryOperationBtns) {
+				if (b.getText().equals(commandSymbol)) {
+					b.setBackground(new Color(107, 115, 130));
+				}
+			}
 		}
 	}
 
 
 	private void do_clearBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeClearCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeClearCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_UndoBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeUndoCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeUndoCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_equalsBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeEqualsCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeEqualsCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_toggleSignBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeToggleSignCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeToggleSignCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_plusBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeAddCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeAddCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_minusBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeSubtractCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeSubtractCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_multiplyBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeMultiplyCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeMultiplyCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_divideBtn_actionPerformed(ActionEvent e) {
-		invoker.invokeDivideCommand();
-		printCurrentState();
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
+		tempCurCommandChangedListeners.add(this);
+		getController().invokeDivideCommand(tempCurCommandChangedListeners, tempValChangedListeners,
+				getResultLabel().getText());
 	}
 
 
 	private void do_decimalBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("0.");
-		} else if (!getResultLabel().getText().contains(".")) {
-			getResultLabel().setText(getResultLabel().getText() + ".");
-		}
-		// Else: ResultLabel contains a '.', so do nothing. This also protects
-		// Double.parseDouble() - which is used by commands - because passing it the
-		// argument "." throws an InvalidNumberFormatException.
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_decimalBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_zeroBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("0");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "0");
-		}
-		// Else: ResultLabel already shows "0" or "-0"
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_zeroBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_oneBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("1");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "1");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-1");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("1");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_oneBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_twoBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("2");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "2");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-2");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("2");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_twoBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_threeBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("3");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "3");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-3");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("3");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_threeBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_fourBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("4");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "4");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-4");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("4");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_fourBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_fiveBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("5");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "5");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-5");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("5");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_fiveBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_sixBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("6");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "6");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-6");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("6");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_sixBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_sevenBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("7");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "7");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-7");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("7");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_sevenBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_eightBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("8");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "8");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-8");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("8");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_eightBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_nineBtn_actionPerformed(ActionEvent e) {
-		if (getState().nextDigitResetsResultLabel()) {
-			getState().setNextDigitResetsResultLabel(false);
-			getResultLabel().setText("9");
-		} else if (!getResultLabel().getText().matches("-?0")) {
-			getResultLabel().setText(getResultLabel().getText() + "9");
-		} else if (getResultLabel().getText().startsWith("-")) {
-			// ResultLabel shows "-0"
-			getResultLabel().setText("-9");
-		} else {
-			// ResultLabel shows "0"
-			getResultLabel().setText("9");
-		}
+		LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
+		tempValChangedListeners.add(this);
+		controller.do_nineBtn_actionPerformed(tempValChangedListeners, getResultLabel().getText());
 	}
 
 
 	private void do_saveFullLogAsXmlMenuItem_actionPerformed(ActionEvent e) {
-		invoker.invokeSaveFullLogAsXmlCommand();
+		getController().invokeSaveFullLogAsXmlCommand();
 	}
 
 
 	private void do_saveShortLogAsXmlMenuItem_actionPerformed(ActionEvent e) {
-		invoker.invokeSaveShortLogAsXmlCommand();
+		getController().invokeSaveShortLogAsXmlCommand();
 	}
 
 
 	private void do_saveFullLogAsTxtMenuItem_actionPerformed(ActionEvent e) {
-		invoker.invokeSaveFullLogAsTxtCommand();
+		getController().invokeSaveFullLogAsTxtCommand();
 	}
 
 
 	private void do_saveShortLogAsTxtMenuItem_actionPerformed(ActionEvent e) {
-		invoker.invokeSaveShortLogAsTxtCommand();
+		getController().invokeSaveShortLogAsTxtCommand();
 	}
 
 
-	public Invoker getInvoker() {
-		return invoker;
+	public Controller getController() {
+		return controller;
 	}
 
 
-	public void setInvoker(Invoker invoker) {
-		this.invoker = invoker;
+	public void setController(Controller controller) {
+		this.controller = controller;
 	}
 
 
@@ -311,13 +265,13 @@ public class Ui {
 	}
 
 
-	public State getState() {
-		return state;
+	public Model getModel() {
+		return model;
 	}
 
 
-	public void setState(State state) {
-		this.state = state;
+	public void setModel(Model model) {
+		this.model = model;
 	}
 
 
@@ -342,7 +296,7 @@ public class Ui {
 		resultLabel = new JLabel();
 		resultLabel.setText("0");
 		resultLabel.setBorder(new EmptyBorder(3, 8, 0, 40));
-		resultLabel.setBackground(STEPHENS_YELLOW);
+		resultLabel.setBackground(DEFAULT_BTN_FONT_COLOR);
 		resultLabel.setOpaque(true);
 		resultLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		resultLabel.setForeground(new Color(255, 255, 255));
@@ -350,7 +304,7 @@ public class Ui {
 		resultLabel.setBounds(0, 0, 443, 96);
 		panel.add(resultLabel);
 
-		clearBtn = new JButton("ac");
+		clearBtn = new JButton("AC");
 		clearBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -359,9 +313,10 @@ public class Ui {
 		});
 		clearBtn.setBorderPainted(false);
 		clearBtn.setOpaque(true);
-		clearBtn.setForeground(STEPHENS_YELLOW);
+		clearBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		clearBtn.setFont(new Font("Arial", Font.PLAIN, 26));
 		clearBtn.setFocusable(false);
+		clearBtn.setBorderPainted(true);
 		clearBtn.setDoubleBuffered(true);
 		clearBtn.setBackground(new Color(255, 255, 255));
 		clearBtn.setBounds(10, 108, 96, 96);
@@ -377,9 +332,10 @@ public class Ui {
 		});
 		undoBtn.setBorderPainted(false);
 		undoBtn.setOpaque(true);
-		undoBtn.setForeground(STEPHENS_YELLOW);
+		undoBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		undoBtn.setFont(new Font("Arial", Font.PLAIN, 26));
 		undoBtn.setFocusable(false);
+		undoBtn.setBorderPainted(true);
 		undoBtn.setDoubleBuffered(true);
 		undoBtn.setBackground(new Color(255, 255, 255));
 		undoBtn.setBounds(118, 108, 96, 96);
@@ -394,11 +350,11 @@ public class Ui {
 		});
 		equalsBtn.setBorderPainted(false);
 		equalsBtn.setOpaque(true);
-		equalsBtn.setForeground(STEPHENS_YELLOW);
-		equalsBtn.setFont(new Font("Arial", Font.PLAIN, 48));
+		equalsBtn.setForeground(Color.LIGHT_GRAY);
+		equalsBtn.setFont(new Font("Arial", Font.PLAIN, 56));
 		equalsBtn.setFocusable(false);
 		equalsBtn.setDoubleBuffered(true);
-		equalsBtn.setBackground(new Color(255, 204, 0));
+		equalsBtn.setBackground(OPERATION_BTN_BACKGROUND);
 		equalsBtn.setBounds(334, 540, 96, 96);
 		panel.add(equalsBtn);
 
@@ -411,9 +367,10 @@ public class Ui {
 		});
 		toggleSignBtn.setBorderPainted(false);
 		toggleSignBtn.setOpaque(true);
-		toggleSignBtn.setForeground(STEPHENS_YELLOW);
+		toggleSignBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		toggleSignBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		toggleSignBtn.setFocusable(false);
+		toggleSignBtn.setBorderPainted(true);
 		toggleSignBtn.setDoubleBuffered(true);
 		toggleSignBtn.setBackground(new Color(255, 255, 255));
 		toggleSignBtn.setBounds(226, 108, 96, 96);
@@ -428,13 +385,14 @@ public class Ui {
 		});
 		plusBtn.setBorderPainted(false);
 		plusBtn.setOpaque(true);
-		plusBtn.setForeground(STEPHENS_YELLOW);
-		plusBtn.setFont(new Font("Arial", Font.PLAIN, 48));
+		plusBtn.setForeground(Color.LIGHT_GRAY);
+		plusBtn.setFont(new Font("Arial", Font.PLAIN, 56));
 		plusBtn.setFocusable(false);
 		plusBtn.setDoubleBuffered(true);
-		plusBtn.setBackground(new Color(255, 204, 0));
+		plusBtn.setBackground(OPERATION_BTN_BACKGROUND);
 		plusBtn.setBounds(334, 432, 96, 96);
 		panel.add(plusBtn);
+		binaryOperationBtns.add(plusBtn);
 
 		subtractBtn = new JButton("-");
 		subtractBtn.addActionListener(new ActionListener() {
@@ -444,14 +402,15 @@ public class Ui {
 			}
 		});
 		subtractBtn.setOpaque(true);
-		subtractBtn.setForeground(UIManager.getColor("Button.foreground"));
-		subtractBtn.setFont(new Font("Arial", Font.PLAIN, 48));
+		subtractBtn.setForeground(Color.LIGHT_GRAY);
+		subtractBtn.setFont(new Font("Arial", Font.PLAIN, 56));
 		subtractBtn.setFocusable(false);
 		subtractBtn.setDoubleBuffered(true);
 		subtractBtn.setBorderPainted(false);
-		subtractBtn.setBackground(new Color(255, 204, 0));
+		subtractBtn.setBackground(OPERATION_BTN_BACKGROUND);
 		subtractBtn.setBounds(334, 324, 96, 96);
 		panel.add(subtractBtn);
+		binaryOperationBtns.add(subtractBtn);
 
 		multiplyBtn = new JButton("x");
 		multiplyBtn.addActionListener(new ActionListener() {
@@ -462,13 +421,14 @@ public class Ui {
 		});
 		multiplyBtn.setBorderPainted(false);
 		multiplyBtn.setOpaque(true);
-		multiplyBtn.setForeground(STEPHENS_YELLOW);
-		multiplyBtn.setFont(new Font("Arial", Font.PLAIN, 48));
+		multiplyBtn.setForeground(Color.LIGHT_GRAY);
+		multiplyBtn.setFont(new Font("Arial", Font.PLAIN, 56));
 		multiplyBtn.setFocusable(false);
 		multiplyBtn.setDoubleBuffered(true);
-		multiplyBtn.setBackground(new Color(255, 204, 0));
+		multiplyBtn.setBackground(OPERATION_BTN_BACKGROUND);
 		multiplyBtn.setBounds(334, 216, 96, 96);
 		panel.add(multiplyBtn);
+		binaryOperationBtns.add(multiplyBtn);
 
 		divideBtn = new JButton("÷");
 		divideBtn.addActionListener(new ActionListener() {
@@ -479,13 +439,14 @@ public class Ui {
 		});
 		divideBtn.setBorderPainted(false);
 		divideBtn.setOpaque(true);
-		divideBtn.setForeground(STEPHENS_YELLOW);
-		divideBtn.setFont(new Font("Arial", Font.PLAIN, 48));
+		divideBtn.setForeground(Color.LIGHT_GRAY);
+		divideBtn.setFont(new Font("Arial", Font.PLAIN, 56));
 		divideBtn.setFocusable(false);
 		divideBtn.setDoubleBuffered(true);
-		divideBtn.setBackground(new Color(255, 204, 0));
+		divideBtn.setBackground(OPERATION_BTN_BACKGROUND);
 		divideBtn.setBounds(334, 108, 96, 96);
 		panel.add(divideBtn);
+		binaryOperationBtns.add(divideBtn);
 
 		decimalBtn = new JButton(".");
 		decimalBtn.addActionListener(new ActionListener() {
@@ -496,9 +457,10 @@ public class Ui {
 		});
 		decimalBtn.setBorderPainted(false);
 		decimalBtn.setOpaque(true);
-		decimalBtn.setForeground(STEPHENS_YELLOW);
+		decimalBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		decimalBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		decimalBtn.setFocusable(false);
+		decimalBtn.setBorderPainted(true);
 		decimalBtn.setDoubleBuffered(true);
 		decimalBtn.setBackground(Color.WHITE);
 		decimalBtn.setBounds(118, 540, 96, 96);
@@ -514,9 +476,10 @@ public class Ui {
 		zeroBtn.setHorizontalAlignment(SwingConstants.LEFT);
 		zeroBtn.setBorderPainted(false);
 		zeroBtn.setOpaque(true);
-		zeroBtn.setForeground(STEPHENS_YELLOW);
+		zeroBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		zeroBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		zeroBtn.setFocusable(false);
+		zeroBtn.setBorderPainted(true);
 		zeroBtn.setDoubleBuffered(true);
 		zeroBtn.setBackground(Color.WHITE);
 		zeroBtn.setBounds(16, 540, 96, 96);
@@ -526,9 +489,10 @@ public class Ui {
 		oneBtn.setBorderPainted(false);
 		oneBtn.setOpaque(true);
 		oneBtn.setFocusable(false);
+		oneBtn.setBorderPainted(true);
 		oneBtn.setDoubleBuffered(true);
 		oneBtn.setFont(new Font("Arial", Font.PLAIN, 48));
-		oneBtn.setForeground(STEPHENS_YELLOW);
+		oneBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		oneBtn.setBackground(new Color(255, 255, 255));
 		oneBtn.addActionListener(new ActionListener() {
 			@Override
@@ -548,9 +512,10 @@ public class Ui {
 		});
 		twoBtn.setBorderPainted(false);
 		twoBtn.setOpaque(true);
-		twoBtn.setForeground(STEPHENS_YELLOW);
+		twoBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		twoBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		twoBtn.setFocusable(false);
+		twoBtn.setBorderPainted(true);
 		twoBtn.setDoubleBuffered(true);
 		twoBtn.setBackground(Color.WHITE);
 		twoBtn.setBounds(118, 432, 96, 96);
@@ -565,9 +530,10 @@ public class Ui {
 		});
 		threeBtn.setBorderPainted(false);
 		threeBtn.setOpaque(true);
-		threeBtn.setForeground(STEPHENS_YELLOW);
+		threeBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		threeBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		threeBtn.setFocusable(false);
+		threeBtn.setBorderPainted(true);
 		threeBtn.setDoubleBuffered(true);
 		threeBtn.setBackground(Color.WHITE);
 		threeBtn.setBounds(226, 432, 96, 96);
@@ -582,9 +548,10 @@ public class Ui {
 		});
 		fourBtn.setBorderPainted(false);
 		fourBtn.setOpaque(true);
-		fourBtn.setForeground(STEPHENS_YELLOW);
+		fourBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		fourBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		fourBtn.setFocusable(false);
+		fourBtn.setBorderPainted(true);
 		fourBtn.setDoubleBuffered(true);
 		fourBtn.setBackground(Color.WHITE);
 		fourBtn.setBounds(10, 324, 96, 96);
@@ -599,9 +566,10 @@ public class Ui {
 		});
 		fiveBtn.setBorderPainted(false);
 		fiveBtn.setOpaque(true);
-		fiveBtn.setForeground(STEPHENS_YELLOW);
+		fiveBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		fiveBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		fiveBtn.setFocusable(false);
+		fiveBtn.setBorderPainted(true);
 		fiveBtn.setDoubleBuffered(true);
 		fiveBtn.setBackground(Color.WHITE);
 		fiveBtn.setBounds(118, 324, 96, 96);
@@ -616,9 +584,10 @@ public class Ui {
 		});
 		sixBtn.setBorderPainted(false);
 		sixBtn.setOpaque(true);
-		sixBtn.setForeground(STEPHENS_YELLOW);
+		sixBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		sixBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		sixBtn.setFocusable(false);
+		sixBtn.setBorderPainted(true);
 		sixBtn.setDoubleBuffered(true);
 		sixBtn.setBackground(Color.WHITE);
 		sixBtn.setBounds(226, 324, 96, 96);
@@ -633,9 +602,10 @@ public class Ui {
 		});
 		sevenBtn.setBorderPainted(false);
 		sevenBtn.setOpaque(true);
-		sevenBtn.setForeground(STEPHENS_YELLOW);
+		sevenBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		sevenBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		sevenBtn.setFocusable(false);
+		sevenBtn.setBorderPainted(true);
 		sevenBtn.setDoubleBuffered(true);
 		sevenBtn.setBackground(Color.WHITE);
 		sevenBtn.setBounds(10, 216, 96, 96);
@@ -650,9 +620,10 @@ public class Ui {
 		});
 		eightBtn.setBorderPainted(false);
 		eightBtn.setOpaque(true);
-		eightBtn.setForeground(STEPHENS_YELLOW);
+		eightBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		eightBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		eightBtn.setFocusable(false);
+		eightBtn.setBorderPainted(true);
 		eightBtn.setDoubleBuffered(true);
 		eightBtn.setBackground(Color.WHITE);
 		eightBtn.setBounds(118, 216, 96, 96);
@@ -667,9 +638,10 @@ public class Ui {
 		});
 		nineBtn.setBorderPainted(false);
 		nineBtn.setOpaque(true);
-		nineBtn.setForeground(STEPHENS_YELLOW);
+		nineBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
 		nineBtn.setFont(new Font("Arial", Font.PLAIN, 48));
 		nineBtn.setFocusable(false);
+		nineBtn.setBorderPainted(true);
 		nineBtn.setDoubleBuffered(true);
 		nineBtn.setBackground(Color.WHITE);
 		nineBtn.setBounds(226, 216, 96, 96);
@@ -743,8 +715,8 @@ public class Ui {
 		menuFile.add(quitMenuItem);
 
 		// Must be initialized after resultLabel!
-		setState(new State(resultLabel));
-		setInvoker(new Invoker(getState()));
+		setModel(new Model());
+		setController(new Controller(getModel()));
 	}
 
 

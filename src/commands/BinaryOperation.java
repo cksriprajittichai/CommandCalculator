@@ -2,10 +2,12 @@ package commands;
 
 import static sbcc.Core.*;
 
+import java.util.*;
+
 import calculator.*;
 import commands.*;
 
-public abstract class BinaryCommand extends Command {
+public abstract class BinaryOperation extends Command {
 
 	private double op1;
 	private double op2;
@@ -16,24 +18,29 @@ public abstract class BinaryCommand extends Command {
 	 * The first operator is taken from the state when this is constructed. The
 	 * second operator will be taken from the state when execute() is called.
 	 * 
-	 * @param state
+	 * @param model
 	 */
-	public BinaryCommand(State state) {
-		setState(state);
+	public BinaryOperation(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
 
-		if (getState().resultLabelContainsValidInput()) {
-			setOp1(Double.parseDouble(getState().getResultLabel().getText()));
-
-			state.setWaiting(true);
-			state.setWaitingCommand(this);
-			state.setNextDigitResetsResultLabel(true);
+		if (model.isWaiting()) {
+			// If there is a waiting command, finish it before creating this BinaryCommand.
+			// Update the value that is passed to this BinaryCommand.
+			initialDisplayValue = model.getWaitingCommand().execute(initialDisplayValue);
 		}
-	}
 
+		setModel(model);
+		setCurrentOperationChangedListeners(currentOperationChangedListeners);
+		setDisplayChangedListeners(displayChangedListeners);
+		setInitialDisplayValue(initialDisplayValue);
 
-	@Override
-	public void updateResultLabel() {
-		getState().getResultLabel().setText(trimDouble(getResult()));
+		if (isValidNumber(getInitialDisplayValue())) {
+			setOp1(Double.parseDouble(getInitialDisplayValue()));
+
+			model.setWaiting(true);
+			model.setWaitingCommand(this);
+			model.setNextDigitResetsResultLabel(true);
+		}
 	}
 
 

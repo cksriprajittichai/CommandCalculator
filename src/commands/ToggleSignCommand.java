@@ -1,5 +1,7 @@
 package commands;
 
+import java.util.*;
+
 import calculator.*;
 
 /**
@@ -7,46 +9,47 @@ import calculator.*;
  */
 public class ToggleSignCommand extends Command {
 
-	private String labelVal;
+	private String op;
 
 
-	public ToggleSignCommand(State state) {
-		setState(state);
+	public ToggleSignCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+		setModel(model);
+		setCurrentOperationChangedListeners(currentOperationChangedListeners);
+		setDisplayChangedListeners(displayChangedListeners);
+		setInitialDisplayValue(initialDisplayValue);
 		setSymbol("±");
 
-		if (getState().resultLabelContainsValidInput()) {
-			setOp(getState().getResultLabel().getText());
-			execute();
+		if (isValidNumber(getInitialDisplayValue())) {
+			execute(initialDisplayValue);
 		}
 	}
 
 
 	@Override
-	public void execute() {
-		if (getOp().startsWith("-")) {
-			setOp(getOp().substring(1, getOp().length()));
+	public String execute(String initialDisplayValue) {
+		// Don't round the double strings, so that when toggleSign is pressed on "0.00",
+		// the result is "-0.00".
+		if (initialDisplayValue.startsWith("-")) {
+			setOp(initialDisplayValue.substring(1, initialDisplayValue.length()));
+			setResultStr(getOp());
 		} else {
-			setOp("-" + getOp());
+			setOp("-" + initialDisplayValue);
+			setResultStr(getOp());
 		}
-		updateResultLabel();
-	}
 
-
-	@Override
-	public void updateResultLabel() {
-		// Do not change or round the number at all. For example, "-1." should become
-		// "1.".
-		getState().getResultLabel().setText(getOp());
+		notifyDisplayChangedListeners();
+		return getResultStr();
 	}
 
 
 	private String getOp() {
-		return labelVal;
+		return op;
 	}
 
 
 	private void setOp(String op) {
-		this.labelVal = op;
+		this.op = op;
 	}
 
 }

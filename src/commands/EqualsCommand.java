@@ -1,5 +1,7 @@
 package commands;
 
+import java.util.*;
+
 import calculator.*;
 
 /**
@@ -7,28 +9,41 @@ import calculator.*;
  */
 public class EqualsCommand extends Command {
 
-	public EqualsCommand(State state) {
-		setState(state);
+	private String initialDisplayValue;
+
+
+	public EqualsCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+		setModel(model);
+		setCurrentOperationChangedListeners(currentOperationChangedListeners);
+		setDisplayChangedListeners(displayChangedListeners);
+		setInitialDisplayValue(initialDisplayValue);
 		setSymbol("=");
 
-		if (getState().isWaiting()) {
-			// I THINK that the state cannot be waiting if there is invalid input in the
-			// result label. Therefore, don't need to check if input is valid.
+		if (getModel().isWaiting()) {
+			// The state cannot be waiting if there is invalid input in the
+			// result label. Therefore, no need to check if input is valid.
 
-			execute();
+			execute(getInitialDisplayValue());
 		}
 	}
 
 
 	@Override
-	public void execute() {
-		getState().getWaitingCommand().execute();
+	public String execute(String initialDisplayValue) {
+		return getModel().getWaitingCommand().execute(initialDisplayValue);
 	}
 
 
 	@Override
-	public void updateResultLabel() {
-		// Do nothing. The waiting command's execute method will update the resultLabel.
+	public String getInitialDisplayValue() {
+		return initialDisplayValue;
+	}
+
+
+	@Override
+	public void setInitialDisplayValue(String initialDisplayValue) {
+		this.initialDisplayValue = initialDisplayValue;
 	}
 
 }

@@ -2,36 +2,45 @@ package commands;
 
 import static sbcc.Core.*;
 
+import java.util.*;
+
 import calculator.*;
 
-public class SubtractCommand extends BinaryCommand {
+public class SubtractCommand extends BinaryOperation {
 
-	public SubtractCommand(State state) {
-		super(state);
+	public SubtractCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+		super(model, currentOperationChangedListeners, displayChangedListeners, initialDisplayValue);
 		setSymbol("-");
+
+		notifyCurrentOperationChangedListeners(getSymbol());
 	}
 
 
 	@Override
-	public void execute() {
-		if (getState().nextDigitResetsResultLabel()) {
+	public String execute(String displayValue) {
+		if (getModel().nextDigitResetsResultLabel()) {
 			// If the user has not entered a new op2 (op1 still remains in the resultLabel).
 			println("SubtractCommand: Enter something else");
-			return;
+			return null;
 		}
 
-		setOp2(Double.parseDouble(getState().getResultLabel().getText()));
+		setOp2(Double.parseDouble(displayValue));
 		setResult(getOp1() - getOp2());
-		printf("Executing SubtractCommand: op1 = %f, op2 = %f, result = %f\n", getOp1(), getOp2(), getResult());
+		setResultStr(roundDoubleString(getResult() + ""));
+		printf("Executing SubtractCommand: op1 = %f, op2 = %f, result = %s\n", getOp1(), getOp2(), getResultStr());
 
 		// State object's nextDigitResetsResultLabel (boolean) is set to false once the
 		// next digit is entered. This happens in the Ui.
 
-		getState().setWaiting(false);
-		getState().setWaitingCommand(null);
-		getState().getCommandStack().add(this);
-		getState().getNetCommandList().add(this);
-		updateResultLabel();
+		getModel().setWaiting(false);
+		getModel().setWaitingCommand(null);
+		getModel().getCommandStack().add(this);
+		getModel().getNetCommandList().add(this);
+		notifyCurrentOperationChangedListeners(null);
+		notifyDisplayChangedListeners();
+
+		return getResultStr();
 	}
 
 }

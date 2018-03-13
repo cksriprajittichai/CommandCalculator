@@ -5,31 +5,76 @@ import java.util.*;
 import calculator.*;
 
 /**
- * All Commands will have a reference to the State.
+ * 
  */
 public abstract class Command {
 
-	private State state;
+	private Model model;
 	private String symbol;
-
-
-	public abstract void execute();
+	private String initialDisplayValue;
+	private String resultStr;
+	private LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners;
+	private LinkedList<DisplayValueChangedListener> displayChangedListeners;
 
 
 	/**
-	 * Updates the label correctly, meaning that this controls length of numbers,
-	 * and removes the decimal if the number is an integer.
+	 * 
+	 * @param displayValue
+	 *            The parameter needed to complete this Command.
+	 * @return The displayValue after execution.
 	 */
-	public abstract void updateResultLabel();
+	public abstract String execute(String displayValue);
 
 
-	public State getState() {
-		return state;
+	/**
+	 * Checks for valid NUMBER
+	 */
+	public boolean isValidNumber(String s) {
+		if (s.matches("-?\\d*\\.?\\d*")) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 
-	public void setState(State state) {
-		this.state = state;
+	public String roundDoubleString(String s) {
+		if (isValidNumber(s)) {
+			Double parseDouble = Double.parseDouble(s);
+
+			if (parseDouble % 1 == 0) {
+				s = "" + (long) Double.parseDouble(s);
+			} else {
+				s = "" + parseDouble;
+			}
+		}
+		// If the resultString isn't a valid number, don't do anything.
+
+		return s;
+	}
+
+
+	public void notifyCurrentOperationChangedListeners(String currentOperatorSymbol) {
+		for (CurrentOperationChangedListener c : getCurrentOperationChangedListeners()) {
+			c.updateCurrentCommandDisplay(currentOperatorSymbol);
+		}
+	}
+
+
+	public void notifyDisplayChangedListeners() {
+		for (DisplayValueChangedListener d : getDisplayChangedListeners()) {
+			d.updateDisplayValue(getResultStr());
+		}
+	}
+
+
+	public Model getModel() {
+		return model;
+	}
+
+
+	public void setModel(Model model) {
+		this.model = model;
 	}
 
 
@@ -40,6 +85,47 @@ public abstract class Command {
 
 	public void setSymbol(String symbol) {
 		this.symbol = symbol;
+	}
+
+
+	public LinkedList<DisplayValueChangedListener> getDisplayChangedListeners() {
+		return displayChangedListeners;
+	}
+
+
+	public void setDisplayChangedListeners(LinkedList<DisplayValueChangedListener> displayChangedListeners) {
+		this.displayChangedListeners = displayChangedListeners;
+	}
+
+
+	public LinkedList<CurrentOperationChangedListener> getCurrentOperationChangedListeners() {
+		return currentOperationChangedListeners;
+	}
+
+
+	public void setCurrentOperationChangedListeners(
+			LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners) {
+		this.currentOperationChangedListeners = currentOperationChangedListeners;
+	}
+
+
+	public String getResultStr() {
+		return resultStr;
+	}
+
+
+	public void setResultStr(String result) {
+		this.resultStr = result;
+	}
+
+
+	public String getInitialDisplayValue() {
+		return initialDisplayValue;
+	}
+
+
+	public void setInitialDisplayValue(String initialDisplayValue) {
+		this.initialDisplayValue = initialDisplayValue;
 	}
 
 }

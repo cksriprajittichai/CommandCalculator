@@ -2,6 +2,8 @@ package commands;
 
 import static sbcc.Core.*;
 
+import java.util.*;
+
 import calculator.*;
 
 /**
@@ -9,8 +11,7 @@ import calculator.*;
  */
 public class UndoCommand extends Command {
 
-	private double result;
-	private Command poppedCommand;
+	String undoneCommandToString;
 
 
 	/**
@@ -18,67 +19,129 @@ public class UndoCommand extends Command {
 	 * to the most recent result of the last Command from the stack; recall that the
 	 * stack only contains BinaryCommands.
 	 * 
-	 * @param state
+	 * @param model
 	 */
-	public UndoCommand(State state) {
-		setState(state);
+	public UndoCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+		setModel(model);
+		setCurrentOperationChangedListeners(currentOperationChangedListeners);
+		setDisplayChangedListeners(displayChangedListeners);
+		setInitialDisplayValue(initialDisplayValue);
 
 		setSymbol("⤺");
-		execute();
+		execute(initialDisplayValue);
 	}
 
 
 	@Override
-	public void execute() {
-		if (getState().isWaiting()) {
-			// If there is a waiting command, delete it.
-			getState().setWaiting(false);
-			getState().setWaitingCommand(null);
-			getState().setNextDigitResetsResultLabel(false);
-		}
+	public String execute(String initialDisplayValue) {
+		/*
+		 * CASES / Examples:
+		 * 
+		 * If the user has completed the expression (3 + 4 = 7), then presses undo, then
+		 * the current display value is "7". Change the display value to the prior
+		 * completed expression's result, if any. If not any prior completed expression,
+		 * then change the display vale to "0".
+		 * 
+		 * If the user has completed the expressiong (3 + 4 = 7), then enters "26", then
+		 * the current display value is "726". Do not change the display value to the
+		 * prior completed expression's result, if any. Instead, change the display
+		 * value back to "7". Save this UndoCommand to the netCommandList, and set its
+		 * undoneCommandToString value to the incompleted expression it undid. In this
+		 * example, the undoneCommandToString value would be set to "726".
+		 */
+		if (getModel().getCommandStack().size() > 1) {
 
-		if (getState().getCommandStack().size() > 1) {
-			poppedCommand = getState().getCommandStack().pop();
-			BinaryCommand lastCommand = (BinaryCommand) getState().getCommandStack().peek();
+			if (getInitialDisplayValue().equals(getModel().getCommandStack().peek().getResultStr())) {
+				setUndoneCommandToString(getModel().getCommandStack().pop().toString());
+				BinaryOperation lastCommand = (BinaryOperation) getModel().getCommandStack().peek();
+				setResultStr(lastCommand.getResultStr());
+			} else {
+				if (getModel().isWaiting()) {
+					BinaryOperation wc = (BinaryOperation) getModel().getWaitingCommand();
+					setUndoneCommandToString(String.format("%s %s %s", wc.trimDouble(wc.getOp1()), wc.getSymbol(),
+							getInitialDisplayValue()));
 
-			setResult(lastCommand.getResult());
-		} else {
-			// If there are no more commands to undo, take the state back to the absolute
-			// beginning.
-			if (getState().getCommandStack().size() == 1) {
-				poppedCommand = getState().getCommandStack().pop();
+					getModel().setWaiting(false);
+					getModel().setWaitingCommand(null);
+					getModel().setNextDigitResetsResultLabel(false);
+				} else {
+					setUndoneCommandToString(getInitialDisplayValue());
+				}
+
+				setResultStr(getModel().getCommandStack().peek().getResultStr());
 			}
-			setResult(0);
-		}
 
-		getState().getNetCommandList().add(this);
-		updateResultLabel();
-	}
+			getModel().getNetCommandList().add(this);
+			notifyCurrentOperationChangedListeners(null);
+			notifyDisplayChangedListeners();
 
+		} else if (getModel().getCommandStack().size() == 1) {
 
-	@Override
-	public void updateResultLabel() {
-		if (getResult() % 1 == 0.0) {
-			getState().getResultLabel().setText((long) getResult() + "");
+			if (getInitialDisplayValue().equals(getModel().getCommandStack().peek().getResultStr())) {
+				setUndoneCommandToString(getModel().getCommandStack().pop().toString());
+				setResultStr("0");
+			} else {
+				if (getModel().isWaiting()) {
+					BinaryOperation wc = (BinaryOperation) getModel().getWaitingCommand();
+					setUndoneCommandToString(String.format("%s %s %s", wc.trimDouble(wc.getOp1()), wc.getSymbol(),
+							getInitialDisplayValue()));
+
+					getModel().setWaiting(false);
+					getModel().setWaitingCommand(null);
+					getModel().setNextDigitResetsResultLabel(false);
+				} else {
+					setUndoneCommandToString(getInitialDisplayValue());
+				}
+
+				setResultStr(getModel().getCommandStack().peek().getResultStr());
+			}
+
+			getModel().getNetCommandList().add(this);
+			notifyCurrentOperationChangedListeners(null);
+			notifyDisplayChangedListeners();
+
 		} else {
-			getState().getResultLabel().setText(getResult() + "");
+
+			if (getModel().isWaiting()) {
+				BinaryOperation wc = (BinaryOperation) getModel().getWaitingCommand();
+				setUndoneCommandToString(String.format("%s %s %s", wc.trimDouble(wc.getOp1()), wc.getSymbol(),
+						getInitialDisplayValue()));
+
+				getModel().setWaiting(false);
+				getModel().setWaitingCommand(null);
+				getModel().setNextDigitResetsResultLabel(false);
+
+				getModel().getNetCommandList().add(this);
+			} else if (!getInitialDisplayValue().equals("0")) {
+				setUndoneCommandToString(getInitialDisplayValue());
+
+				getModel().getNetCommandList().add(this);
+			}
+			// Else: The initialDisplayValue is "0". Don't add this to the netCommandList.
+
+			setResultStr("0");
+			notifyCurrentOperationChangedListeners(null);
+			notifyDisplayChangedListeners();
 		}
+
+		return getResultStr();
 	}
 
 
 	@Override
 	public String toString() {
-		return String.format("undo (%s)", poppedCommand.toString());
+		return String.format("undo (%s)", getUndoneCommandToString());
 	}
 
 
-	public double getResult() {
-		return result;
+	public String getUndoneCommandToString() {
+		return this.undoneCommandToString;
 	}
 
 
-	public void setResult(double result) {
-		this.result = result;
+	public void setUndoneCommandToString(String undoneCommandStr) {
+		this.undoneCommandToString = undoneCommandStr;
 	}
 
 }

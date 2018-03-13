@@ -2,51 +2,61 @@ package commands;
 
 import static sbcc.Core.*;
 
+import java.util.*;
+
 import calculator.*;
 
-public class DivideCommand extends BinaryCommand {
+public class DivideCommand extends BinaryOperation {
 
-	public DivideCommand(State state) {
-		super(state);
+	public DivideCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
+			LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+		super(model, currentOperationChangedListeners, displayChangedListeners, initialDisplayValue);
 		setSymbol("÷");
+
+		notifyCurrentOperationChangedListeners(getSymbol());
 	}
 
 
 	@Override
-	public void execute() {
-		if (getState().nextDigitResetsResultLabel()) {
+	public String execute(String displayValue) {
+		if (getModel().nextDigitResetsResultLabel()) {
 			// If the user has not entered a new op2 (op1 still remains in the resultLabel).
 			println("DivideCommand: Enter something else");
-			return;
+			return null;
 		}
 
 		// Guard against division by 0
-		setOp2(Double.parseDouble(getState().getResultLabel().getText()));
+		setOp2(Double.parseDouble(displayValue));
 		if (getOp2() == 0) {
 
-			// Do not add errors to the stack
+			getModel().setWaiting(false);
+			getModel().setWaitingCommand(null);
+			getModel().setNextDigitResetsResultLabel(true);
+			setResultStr(roundDoubleString("error: ÷ by 0"));
 
-			getState().getResultLabel().setText("error: ÷ by 0");
-			getState().setWaiting(false);
-			getState().setWaitingCommand(null);
-			getState().setNextDigitResetsResultLabel(true);
+			// Do not add errors to the commandStack, but add them to the netCommandList.
+			getModel().getNetCommandList().add(this);
 
-			getState().getNetCommandList().add(this);
+			notifyCurrentOperationChangedListeners(null);
+			notifyDisplayChangedListeners();
 
-			return;
+		} else {
+			setResult(getOp1() / getOp2());
+			setResultStr(roundDoubleString(getResult() + ""));
+			printf("Executing DivideCommand: op1 = %f, op2 = %f, result = %s\n", getOp1(), getOp2(), getResultStr());
+
+			// Model object's nextDigitResetsResultLabel (boolean) is set to false once the
+			// next digit is entered. This happens in the Ui.
+
+			getModel().setWaiting(false);
+			getModel().setWaitingCommand(null);
+			getModel().getCommandStack().add(this);
+			getModel().getNetCommandList().add(this);
+			notifyCurrentOperationChangedListeners(null);
+			notifyDisplayChangedListeners();
 		}
 
-		setResult(getOp1() / getOp2());
-		printf("Executing DivideCommand: op1 = %f, op2 = %f, result = %f\n", getOp1(), getOp2(), getResult());
-
-		// State object's nextDigitResetsResultLabel (boolean) is set to false once the
-		// next digit is entered. This happens in the Ui.
-
-		getState().setWaiting(false);
-		getState().setWaitingCommand(null);
-		getState().getCommandStack().add(this);
-		getState().getNetCommandList().add(this);
-		updateResultLabel();
+		return getResultStr();
 	}
 
 
