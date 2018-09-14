@@ -1,131 +1,128 @@
 package commands;
 
-import java.util.*;
+import calculator.CurrentOperationChangedListener;
+import calculator.DisplayValueChangedListener;
+import calculator.Model;
 
-import calculator.*;
+import java.util.LinkedList;
 
-/**
- * 
- */
 public abstract class Command {
 
-	private Model model;
-	private String symbol;
-	private String initialDisplayValue;
-	private String resultStr;
-	private LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners;
-	private LinkedList<DisplayValueChangedListener> displayChangedListeners;
+    private Model model;
+    private String symbol;
+    private String initialDisplayValue;
+    private String resultStr;
+    private LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners;
+    private LinkedList<DisplayValueChangedListener> displayChangedListeners;
 
 
-	/**
-	 * 
-	 * @param displayValue
-	 *            The parameter needed to complete this Command.
-	 * @return The displayValue after execution.
-	 */
-	public abstract String execute(String displayValue);
+    /**
+     * @param displayValue The parameter needed to complete this Command.
+     * @return The displayValue after execution.
+     */
+    public abstract String execute(String displayValue);
 
 
-	/**
-	 * Checks for valid NUMBER
-	 */
-	public boolean isValidNumber(String s) {
-		if (s.matches("-?\\d*\\.?\\d*")) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+    /**
+     * Checks for valid NUMBER
+     */
+    public boolean isValidNumber(String s) {
+        if (s.matches("-?\\d*\\.?\\d*")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 
-	public String roundDoubleString(String s) {
-		if (isValidNumber(s)) {
-			Double parseDouble = Double.parseDouble(s);
+    public String roundDoubleString(String s) {
+        if (isValidNumber(s)) {
+            Double parseDouble = Double.parseDouble(s);
 
-			if (parseDouble % 1 == 0) {
-				s = "" + (long) Double.parseDouble(s);
-			} else {
-				s = "" + parseDouble;
-			}
-		}
-		// If the resultString isn't a valid number, don't do anything.
+            if (parseDouble % 1 == 0) {
+                s = "" + (long) Double.parseDouble(s);
+            } else {
+                s = "" + parseDouble;
+            }
+        }
+        // If the resultString isn't a valid number, don't do anything.
 
-		return s;
-	}
-
-
-	public void notifyCurrentOperationChangedListeners(String currentOperatorSymbol) {
-		for (CurrentOperationChangedListener c : getCurrentOperationChangedListeners()) {
-			c.updateCurrentCommandDisplay(currentOperatorSymbol);
-		}
-	}
+        return s;
+    }
 
 
-	public void notifyDisplayChangedListeners() {
-		for (DisplayValueChangedListener d : getDisplayChangedListeners()) {
-			d.updateDisplayValue(getResultStr());
-		}
-	}
+    public void notifyCurrentOperationChangedListeners(String currentOperatorSymbol) {
+        for (CurrentOperationChangedListener c : getCurrentOperationChangedListeners()) {
+            c.updateCurrentCommandDisplay(currentOperatorSymbol);
+        }
+    }
 
 
-	public Model getModel() {
-		return model;
-	}
+    public void notifyDisplayChangedListeners() {
+        for (DisplayValueChangedListener d : getDisplayChangedListeners()) {
+            d.updateDisplayValue(getResultStr());
+        }
+    }
 
 
-	public void setModel(Model model) {
-		this.model = model;
-	}
+    public Model getModel() {
+        return model;
+    }
 
 
-	public String getSymbol() {
-		return symbol;
-	}
+    public void setModel(Model model) {
+        this.model = model;
+    }
 
 
-	public void setSymbol(String symbol) {
-		this.symbol = symbol;
-	}
+    public String getSymbol() {
+        return symbol;
+    }
 
 
-	public LinkedList<DisplayValueChangedListener> getDisplayChangedListeners() {
-		return displayChangedListeners;
-	}
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
 
 
-	public void setDisplayChangedListeners(LinkedList<DisplayValueChangedListener> displayChangedListeners) {
-		this.displayChangedListeners = displayChangedListeners;
-	}
+    public LinkedList<DisplayValueChangedListener> getDisplayChangedListeners() {
+        return displayChangedListeners;
+    }
 
 
-	public LinkedList<CurrentOperationChangedListener> getCurrentOperationChangedListeners() {
-		return currentOperationChangedListeners;
-	}
+    public void setDisplayChangedListeners(LinkedList<DisplayValueChangedListener> displayChangedListeners) {
+        this.displayChangedListeners = displayChangedListeners;
+    }
 
 
-	public void setCurrentOperationChangedListeners(
-			LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners) {
-		this.currentOperationChangedListeners = currentOperationChangedListeners;
-	}
+    public LinkedList<CurrentOperationChangedListener> getCurrentOperationChangedListeners() {
+        return currentOperationChangedListeners;
+    }
 
 
-	public String getResultStr() {
-		return resultStr;
-	}
+    public void setCurrentOperationChangedListeners(
+            LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners) {
+        this.currentOperationChangedListeners = currentOperationChangedListeners;
+    }
 
 
-	public void setResultStr(String result) {
-		this.resultStr = result;
-	}
+    public String getResultStr() {
+        return resultStr;
+    }
 
 
-	public String getInitialDisplayValue() {
-		return initialDisplayValue;
-	}
+    public void setResultStr(String result) {
+        this.resultStr = result;
+    }
 
 
-	public void setInitialDisplayValue(String initialDisplayValue) {
-		this.initialDisplayValue = initialDisplayValue;
-	}
+    public String getInitialDisplayValue() {
+        return initialDisplayValue;
+    }
+
+
+    public void setInitialDisplayValue(String initialDisplayValue) {
+        this.initialDisplayValue = initialDisplayValue;
+    }
 
 }

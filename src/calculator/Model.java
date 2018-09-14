@@ -1,62 +1,62 @@
 package calculator;
 
-import java.util.*;
+import commands.BinaryOperation;
+import commands.Command;
 
-import javax.swing.*;
-
-import commands.*;
+import java.util.LinkedList;
+import java.util.Stack;
 
 public class Model {
 
-	private boolean nextDigitResetsResultLabel = false;
-	private boolean isWaiting = false;
-	private Command waitingCommand;
+    private boolean nextDigitResetsResultLabel = false;
+    private boolean isWaiting = false;
+    private Command waitingCommand;
 
-	// Completed BinaryOperations are added to this stack. The UndoCommand's
-	// execute() pops a command from this stack.
-	private Stack<BinaryOperation> commandStack = new Stack<BinaryOperation>();
+    // Completed BinaryOperations are added to this stack. The UndoCommand's
+    // execute() pops a command from this stack.
+    private Stack<BinaryOperation> commandStack = new Stack<BinaryOperation>();
 
-	// This list contains every completed BinaryOperation, as well as UndoCommands.
-	private LinkedList<Command> netCommandList = new LinkedList<Command>();
-
-
-	public Command getWaitingCommand() {
-		return waitingCommand;
-	}
+    // This list contains every completed BinaryOperation, as well as UndoCommands.
+    private LinkedList<Command> netCommandList = new LinkedList<Command>();
 
 
-	public void setWaitingCommand(Command waitingCommand) {
-		this.waitingCommand = waitingCommand;
-	}
+    public Command getWaitingCommand() {
+        return waitingCommand;
+    }
 
 
-	public boolean isWaiting() {
-		return isWaiting;
-	}
+    public void setWaitingCommand(Command waitingCommand) {
+        this.waitingCommand = waitingCommand;
+    }
 
 
-	public void setWaiting(boolean val) {
-		isWaiting = val;
-	}
+    public boolean isWaiting() {
+        return isWaiting;
+    }
 
 
-	public boolean nextDigitResetsResultLabel() {
-		return nextDigitResetsResultLabel;
-	}
+    public void setWaiting(boolean val) {
+        isWaiting = val;
+    }
 
 
-	public void setNextDigitResetsResultLabel(boolean nextDigitResetsResultLabel) {
-		this.nextDigitResetsResultLabel = nextDigitResetsResultLabel;
-	}
+    public boolean nextDigitResetsResultLabel() {
+        return nextDigitResetsResultLabel;
+    }
 
 
-	public Stack<BinaryOperation> getCommandStack() {
-		return commandStack;
-	}
+    public void setNextDigitResetsResultLabel(boolean nextDigitResetsResultLabel) {
+        this.nextDigitResetsResultLabel = nextDigitResetsResultLabel;
+    }
 
 
-	public LinkedList<Command> getNetCommandList() {
-		return netCommandList;
-	}
+    public Stack<BinaryOperation> getCommandStack() {
+        return commandStack;
+    }
+
+
+    public LinkedList<Command> getNetCommandList() {
+        return netCommandList;
+    }
 
 }
