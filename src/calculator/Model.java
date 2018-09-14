@@ -10,7 +10,7 @@ public class Model {
 
     private boolean nextDigitResetsResultLabel = false;
     private boolean isWaiting = false;
-    private Command waitingCommand;
+    private BinaryOperation waitingCommand;
 
     // Completed BinaryOperations are added to this stack. The UndoCommand's
     // execute() pops a command from this stack.
@@ -20,12 +20,12 @@ public class Model {
     private LinkedList<Command> netCommandList = new LinkedList<Command>();
 
 
-    public Command getWaitingCommand() {
+    public BinaryOperation getWaitingCommand() {
         return waitingCommand;
     }
 
 
-    public void setWaitingCommand(Command waitingCommand) {
+    public void setWaitingCommand(BinaryOperation waitingCommand) {
         this.waitingCommand = waitingCommand;
     }
 

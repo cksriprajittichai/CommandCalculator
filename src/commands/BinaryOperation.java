@@ -11,6 +11,7 @@ public abstract class BinaryOperation extends Command {
     private double op1;
     private double op2;
     private double result;
+    private int precedence; // The operation with higher precedence is executed first.
 
 
     /**
@@ -21,17 +22,17 @@ public abstract class BinaryOperation extends Command {
      */
     public BinaryOperation(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
                            LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
-
-        if (model.isWaiting()) {
-            // If there is a waiting command, finish it before creating this BinaryCommand.
-            // Update the value that is passed to this BinaryCommand.
-            initialDisplayValue = model.getWaitingCommand().execute(initialDisplayValue);
-        }
-
         setModel(model);
         setCurrentOperationChangedListeners(currentOperationChangedListeners);
         setDisplayChangedListeners(displayChangedListeners);
-        setInitialDisplayValue(initialDisplayValue);
+
+        if (getModel().isWaiting() && !getModel().nextDigitResetsResultLabel()) {
+            // If there is a waiting command, finish it before creating this BinaryCommand.
+            // Update the value that is passed to this BinaryCommand.
+            setInitialDisplayValue(getModel().getWaitingCommand().execute(initialDisplayValue));
+        } else {
+            setInitialDisplayValue(initialDisplayValue);
+        }
 
         if (isValidNumber(getInitialDisplayValue())) {
             setOp1(Double.parseDouble(getInitialDisplayValue()));
@@ -92,6 +93,16 @@ public abstract class BinaryOperation extends Command {
 
     public void setResult(double result) {
         this.result = result;
+    }
+
+
+    public int getPrecedence() {
+        return precedence;
+    }
+
+
+    public void setPrecedence(int precedence) {
+        this.precedence = precedence;
     }
 
 }

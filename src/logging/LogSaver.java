@@ -1,6 +1,6 @@
 package logging;
 
-
+import calculator.LogSavingStrategyFactory;
 import commands.Command;
 
 import javax.swing.*;
@@ -15,9 +15,8 @@ import java.util.List;
  */
 public class LogSaver {
 
-    private FileSavingStrategy currentStrategy;
-    private SaveAsTxtStrategy instanceOfTxtStrategy = new SaveAsTxtStrategy();
-    private SaveAsXmlStrategy instanceOfXmlStrategy = new SaveAsXmlStrategy();
+    private LogSavingStrategy currentStrategy;
+    private LogSavingStrategyFactory strategyFactory = new LogSavingStrategyFactory();
 
     public static final String path_to_dir = System.getProperty("user.home") + "/CommandCalculator";
     private static final Character illegal_chars_arr[] = {'/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<',
@@ -36,13 +35,13 @@ public class LogSaver {
      * directory. It then saves logs to that folder, with incrementing names -
      * "calculatorLog_04", if 01, 02, and 03 already exist.
      *
-     * @param commandContainer The stack of commands that must be converted to a log.
-     * @param fileExtension    The extension of the desired file. This determines which strategy
-     *                         this LogSaver will use to save the file. This provides the
-     *                         "StrategyContext" described by the strategy design pattern.
-     * @param shortOrLong      Equal to "short" if the user wants to save the commandStack to a
-     *                         log, or "full" if the user wants to save the netCommandList to a
-     *                         log.
+     * @param commandStack  The stack of commands that must be converted to a log.
+     * @param fileExtension The extension of the desired file. This determines which strategy
+     *                      this LogSaver will use to save the file. This provides the
+     *                      "StrategyContext" described by the strategy design pattern.
+     * @param shortOrLong   Equal to "short" if the user wants to save the commandStack to a
+     *                      log, or "full" if the user wants to save the netCommandList to a
+     *                      log.
      */
     public void saveLog(List<? extends Command> commandContainer, String fileExtension, String shortOrLong) {
         boolean exitLoop = false;
@@ -84,9 +83,9 @@ public class LogSaver {
                 exitLoop = true;
 
                 if (fileExtension.equals(".txt")) {
-                    currentStrategy = instanceOfTxtStrategy;
+                    currentStrategy = strategyFactory.createLogSavingStrategy("Txt");
                 } else if (fileExtension.equals(".xml")) {
-                    currentStrategy = instanceOfXmlStrategy;
+                    currentStrategy = strategyFactory.createLogSavingStrategy("Xml");
                 }
 
                 currentStrategy.saveLog(commandContainer, filenameOnly + fileExtension, shortOrLong);

@@ -11,11 +11,6 @@ import java.util.LinkedList;
  * with the model to complete themselves. Additionally, Commands need the
  * current displayValue to be created/executed - this argument is passed down
  * through the Ui to the Controller and on to the Commands.
- * <p>
- * The only "thinking" that the Controller does is to filter the buttons pressed
- * by the user in the Ui. The Controller will do things such as limit the length
- * of the displayValue, or not display a decimal if the current displayValue
- * already contains a decimal.
  */
 public class Controller {
 

@@ -1,6 +1,5 @@
 package commands;
 
-
 import calculator.CurrentOperationChangedListener;
 import calculator.DisplayValueChangedListener;
 import calculator.Model;
@@ -13,7 +12,6 @@ import java.util.LinkedList;
 public class UndoCommand extends Command {
 
     String undoneCommandToString;
-
 
     /**
      * UndoCommands clear any waiting (unfinished) commands, and returns the state

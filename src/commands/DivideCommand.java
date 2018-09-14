@@ -1,6 +1,5 @@
 package commands;
 
-
 import calculator.CurrentOperationChangedListener;
 import calculator.DisplayValueChangedListener;
 import calculator.Model;
@@ -11,21 +10,23 @@ public class DivideCommand extends BinaryOperation {
 
     public DivideCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
                          LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
+        // The super constructor of a BinaryOperation finishes waiting BinaryOperations
+        // if there are any, and updates initialDisplayValue to the result of the
+        // waiting BinaryOperation, if any.
         super(model, currentOperationChangedListeners, displayChangedListeners, initialDisplayValue);
-        setSymbol("÷");
+        setPrecedence(1);
 
-        notifyCurrentOperationChangedListeners(getSymbol());
+        if (isValidNumber(initialDisplayValue)) {
+            // If the display value is "error", for example, do not notify the
+            // currentOperationChangedListeners.
+            setSymbol("÷");
+            notifyCurrentOperationChangedListeners(getSymbol());
+        }
     }
 
 
     @Override
     public String execute(String displayValue) {
-        if (getModel().nextDigitResetsResultLabel()) {
-            // If the user has not entered a new op2 (op1 still remains in the resultLabel).
-            System.out.println("DivideCommand: Enter something else");
-            return null;
-        }
-
         // Guard against division by 0
         setOp2(Double.parseDouble(displayValue));
         if (getOp2() == 0) {

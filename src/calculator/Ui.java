@@ -3,9 +3,7 @@ package calculator;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.util.LinkedList;
 
 public class Ui implements DisplayValueChangedListener, CurrentOperationChangedListener {
@@ -33,13 +31,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
     private JButton eightBtn;
     private JButton nineBtn;
 
-    private LinkedList<JButton> binaryOperationBtns = new LinkedList<JButton>();
-
     private Model model;
     private Controller controller;
+    private LinkedList<JButton> binaryOperationBtns = new LinkedList<JButton>();
+    private JButton waitingBinaryOperationBtn;
 
     private final Color DEFAULT_BTN_FONT_COLOR = new Color(55, 55, 55);
-    private final Color OPERATION_BTN_BACKGROUND = new Color(9, 86, 164);
+    private final Color OPERATION_BTN_BACKGROUND_COLOR = new Color(9, 86, 164);
 
 
     @Override
@@ -50,16 +48,24 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
 
     @Override
     public void updateCurrentCommandDisplay(String commandSymbol) {
-        if (commandSymbol == null) {
-            // There is no waiting command
-            for (JButton b : binaryOperationBtns) {
-                b.setBackground(OPERATION_BTN_BACKGROUND);
+        if (commandSymbol != null) {
+            if (getWaitingBinaryOperationBtn() != null) {
+                // Turn off highlight for old-current operator
+                getWaitingBinaryOperationBtn().setBackground(OPERATION_BTN_BACKGROUND_COLOR);
             }
-        } else {
+
+            // Highlight new current operator
             for (JButton b : binaryOperationBtns) {
                 if (b.getText().equals(commandSymbol)) {
+                    setWaitingBinaryOperationBtn(b);
                     b.setBackground(new Color(107, 115, 130));
                 }
+            }
+        } else if (commandSymbol == null) {
+            // There is no waiting command
+            if (getWaitingBinaryOperationBtn() != null) {
+                getWaitingBinaryOperationBtn().setBackground(OPERATION_BTN_BACKGROUND_COLOR);
+                setWaitingBinaryOperationBtn(null);
             }
         }
     }
@@ -75,7 +81,7 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
     }
 
 
-    private void do_UndoBtn_actionPerformed(ActionEvent e) {
+    private void do_undoBtn_actionPerformed(ActionEvent e) {
         LinkedList<DisplayValueChangedListener> tempValChangedListeners = new LinkedList<DisplayValueChangedListener>();
         tempValChangedListeners.add(this);
         LinkedList<CurrentOperationChangedListener> tempCurCommandChangedListeners = new LinkedList<CurrentOperationChangedListener>();
@@ -308,6 +314,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_clearBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "clear");
+        panel.getActionMap().put("clear", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_clearBtn_actionPerformed(e);
+            }
+        });
         clearBtn.setBorderPainted(false);
         clearBtn.setOpaque(true);
         clearBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
@@ -324,7 +337,14 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
         undoBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                do_UndoBtn_actionPerformed(e);
+                do_undoBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK), "undo");
+        panel.getActionMap().put("undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_undoBtn_actionPerformed(e);
             }
         });
         undoBtn.setBorderPainted(false);
@@ -345,13 +365,21 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_equalsBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('='), "=");
+        panel.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "=");
+        panel.getActionMap().put("=", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_equalsBtn_actionPerformed(e);
+            }
+        });
         equalsBtn.setBorderPainted(false);
         equalsBtn.setOpaque(true);
         equalsBtn.setForeground(Color.LIGHT_GRAY);
         equalsBtn.setFont(new Font("Arial", Font.PLAIN, 56));
         equalsBtn.setFocusable(false);
         equalsBtn.setDoubleBuffered(true);
-        equalsBtn.setBackground(OPERATION_BTN_BACKGROUND);
+        equalsBtn.setBackground(OPERATION_BTN_BACKGROUND_COLOR);
         equalsBtn.setBounds(334, 540, 96, 96);
         panel.add(equalsBtn);
 
@@ -362,6 +390,7 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_toggleSignBtn_actionPerformed(e);
             }
         });
+        // No key binding
         toggleSignBtn.setBorderPainted(false);
         toggleSignBtn.setOpaque(true);
         toggleSignBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
@@ -380,13 +409,20 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_plusBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('+'), "+");
+        panel.getActionMap().put("+", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_plusBtn_actionPerformed(e);
+            }
+        });
         plusBtn.setBorderPainted(false);
         plusBtn.setOpaque(true);
         plusBtn.setForeground(Color.LIGHT_GRAY);
         plusBtn.setFont(new Font("Arial", Font.PLAIN, 56));
         plusBtn.setFocusable(false);
         plusBtn.setDoubleBuffered(true);
-        plusBtn.setBackground(OPERATION_BTN_BACKGROUND);
+        plusBtn.setBackground(OPERATION_BTN_BACKGROUND_COLOR);
         plusBtn.setBounds(334, 432, 96, 96);
         panel.add(plusBtn);
         binaryOperationBtns.add(plusBtn);
@@ -398,13 +434,20 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_minusBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('-'), "-");
+        panel.getActionMap().put("-", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_minusBtn_actionPerformed(e);
+            }
+        });
         subtractBtn.setOpaque(true);
         subtractBtn.setForeground(Color.LIGHT_GRAY);
         subtractBtn.setFont(new Font("Arial", Font.PLAIN, 56));
         subtractBtn.setFocusable(false);
         subtractBtn.setDoubleBuffered(true);
         subtractBtn.setBorderPainted(false);
-        subtractBtn.setBackground(OPERATION_BTN_BACKGROUND);
+        subtractBtn.setBackground(OPERATION_BTN_BACKGROUND_COLOR);
         subtractBtn.setBounds(334, 324, 96, 96);
         panel.add(subtractBtn);
         binaryOperationBtns.add(subtractBtn);
@@ -416,13 +459,20 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_multiplyBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('*'), "*");
+        panel.getActionMap().put("*", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_multiplyBtn_actionPerformed(e);
+            }
+        });
         multiplyBtn.setBorderPainted(false);
         multiplyBtn.setOpaque(true);
         multiplyBtn.setForeground(Color.LIGHT_GRAY);
         multiplyBtn.setFont(new Font("Arial", Font.PLAIN, 56));
         multiplyBtn.setFocusable(false);
         multiplyBtn.setDoubleBuffered(true);
-        multiplyBtn.setBackground(OPERATION_BTN_BACKGROUND);
+        multiplyBtn.setBackground(OPERATION_BTN_BACKGROUND_COLOR);
         multiplyBtn.setBounds(334, 216, 96, 96);
         panel.add(multiplyBtn);
         binaryOperationBtns.add(multiplyBtn);
@@ -434,19 +484,33 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_divideBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('/'), "/");
+        panel.getActionMap().put("/", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_divideBtn_actionPerformed(e);
+            }
+        });
         divideBtn.setBorderPainted(false);
         divideBtn.setOpaque(true);
         divideBtn.setForeground(Color.LIGHT_GRAY);
         divideBtn.setFont(new Font("Arial", Font.PLAIN, 56));
         divideBtn.setFocusable(false);
         divideBtn.setDoubleBuffered(true);
-        divideBtn.setBackground(OPERATION_BTN_BACKGROUND);
+        divideBtn.setBackground(OPERATION_BTN_BACKGROUND_COLOR);
         divideBtn.setBounds(334, 108, 96, 96);
         panel.add(divideBtn);
         binaryOperationBtns.add(divideBtn);
 
         decimalBtn = new JButton(".");
         decimalBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_decimalBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('.'), ".");
+        panel.getActionMap().put(".", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 do_decimalBtn_actionPerformed(e);
@@ -463,15 +527,20 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
         decimalBtn.setBounds(118, 540, 96, 96);
         panel.add(decimalBtn);
 
-        zeroBtn = new JButton(" 0");
+        zeroBtn = new JButton("0");
         zeroBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 do_zeroBtn_actionPerformed(e);
             }
         });
-        zeroBtn.setHorizontalAlignment(SwingConstants.LEFT);
-        zeroBtn.setBorderPainted(false);
+        panel.getInputMap().put(KeyStroke.getKeyStroke('0'), "0");
+        panel.getActionMap().put("0", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_zeroBtn_actionPerformed(e);
+            }
+        });
         zeroBtn.setOpaque(true);
         zeroBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
         zeroBtn.setFont(new Font("Arial", Font.PLAIN, 48));
@@ -479,10 +548,23 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
         zeroBtn.setBorderPainted(true);
         zeroBtn.setDoubleBuffered(true);
         zeroBtn.setBackground(Color.WHITE);
-        zeroBtn.setBounds(16, 540, 96, 96);
+        zeroBtn.setBounds(10, 540, 96, 96);
         panel.add(zeroBtn);
 
         oneBtn = new JButton("1");
+        oneBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_oneBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('1'), "1");
+        panel.getActionMap().put("1", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_oneBtn_actionPerformed(e);
+            }
+        });
         oneBtn.setBorderPainted(false);
         oneBtn.setOpaque(true);
         oneBtn.setFocusable(false);
@@ -491,17 +573,18 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
         oneBtn.setFont(new Font("Arial", Font.PLAIN, 48));
         oneBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
         oneBtn.setBackground(new Color(255, 255, 255));
-        oneBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                do_oneBtn_actionPerformed(e);
-            }
-        });
         oneBtn.setBounds(10, 432, 96, 96);
         panel.add(oneBtn);
 
         twoBtn = new JButton("2");
         twoBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_twoBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('2'), "2");
+        panel.getActionMap().put("2", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 do_twoBtn_actionPerformed(e);
@@ -525,6 +608,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_threeBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('3'), "3");
+        panel.getActionMap().put("3", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_threeBtn_actionPerformed(e);
+            }
+        });
         threeBtn.setBorderPainted(false);
         threeBtn.setOpaque(true);
         threeBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
@@ -538,6 +628,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
 
         fourBtn = new JButton("4");
         fourBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_fourBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('4'), "4");
+        panel.getActionMap().put("4", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 do_fourBtn_actionPerformed(e);
@@ -561,6 +658,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_fiveBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('5'), "5");
+        panel.getActionMap().put("5", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_fiveBtn_actionPerformed(e);
+            }
+        });
         fiveBtn.setBorderPainted(false);
         fiveBtn.setOpaque(true);
         fiveBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
@@ -574,6 +678,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
 
         sixBtn = new JButton("6");
         sixBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_sixBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('6'), "6");
+        panel.getActionMap().put("6", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 do_sixBtn_actionPerformed(e);
@@ -597,6 +708,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_sevenBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('7'), "7");
+        panel.getActionMap().put("7", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_sevenBtn_actionPerformed(e);
+            }
+        });
         sevenBtn.setBorderPainted(false);
         sevenBtn.setOpaque(true);
         sevenBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
@@ -610,6 +728,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
 
         eightBtn = new JButton("8");
         eightBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_eightBtn_actionPerformed(e);
+            }
+        });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('8'), "8");
+        panel.getActionMap().put("8", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 do_eightBtn_actionPerformed(e);
@@ -633,6 +758,13 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
                 do_nineBtn_actionPerformed(e);
             }
         });
+        panel.getInputMap().put(KeyStroke.getKeyStroke('9'), "9");
+        panel.getActionMap().put("9", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                do_nineBtn_actionPerformed(e);
+            }
+        });
         nineBtn.setBorderPainted(false);
         nineBtn.setOpaque(true);
         nineBtn.setForeground(DEFAULT_BTN_FONT_COLOR);
@@ -651,13 +783,17 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
         menuFile.setFont(new Font("Arial", Font.PLAIN, 18));
         menuBar.add(menuFile);
 
-        JMenu saveFullLogMenu = new JMenu("Save full log as");
-        saveFullLogMenu.setFont(new Font("Arial", Font.PLAIN, 18));
-        menuFile.add(saveFullLogMenu);
+        JMenu saveMenu = new JMenu("Save");
+        saveMenu.setFont(new Font("Arial", Font.PLAIN, 18));
+        menuFile.add(saveMenu);
 
-        JMenu saveShortLogMenu = new JMenu("Save short log as");
+        JMenu saveFullLogMenu = new JMenu("Full Log");
+        saveFullLogMenu.setFont(new Font("Arial", Font.PLAIN, 18));
+        saveMenu.add(saveFullLogMenu);
+
+        JMenu saveShortLogMenu = new JMenu("Short Log");
         saveShortLogMenu.setFont(new Font("Arial", Font.PLAIN, 18));
-        menuFile.add(saveShortLogMenu);
+        saveMenu.add(saveShortLogMenu);
 
         JMenuItem saveFullLogAsTxtMenuItem = new JMenuItem("TXT");
         saveFullLogAsTxtMenuItem.addActionListener(new ActionListener() {
@@ -719,6 +855,16 @@ public class Ui implements DisplayValueChangedListener, CurrentOperationChangedL
 
     public void startApplication() {
         frame.setVisible(true);
+    }
+
+
+    public JButton getWaitingBinaryOperationBtn() {
+        return waitingBinaryOperationBtn;
+    }
+
+
+    public void setWaitingBinaryOperationBtn(JButton waitingBinaryOperationBtn) {
+        this.waitingBinaryOperationBtn = waitingBinaryOperationBtn;
     }
 
 }

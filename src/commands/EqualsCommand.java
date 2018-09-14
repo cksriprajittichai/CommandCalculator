@@ -13,7 +13,6 @@ public class EqualsCommand extends Command {
 
     private String initialDisplayValue;
 
-
     public EqualsCommand(Model model, LinkedList<CurrentOperationChangedListener> currentOperationChangedListeners,
                          LinkedList<DisplayValueChangedListener> displayChangedListeners, String initialDisplayValue) {
         setModel(model);

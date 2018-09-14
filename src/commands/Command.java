@@ -24,10 +24,10 @@ public abstract class Command {
 
 
     /**
-     * Checks for valid NUMBER
+     * Checks for valid float
      */
     public boolean isValidNumber(String s) {
-        if (s.matches("-?\\d*\\.?\\d*")) {
+        if (s != null && s.matches("-?\\d*\\.?\\d*")) {
             return true;
         } else {
             return false;

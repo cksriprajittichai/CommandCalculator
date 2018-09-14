@@ -1,6 +1,5 @@
 package commands;
 
-
 import calculator.CurrentOperationChangedListener;
 import calculator.DisplayValueChangedListener;
 import calculator.Model;

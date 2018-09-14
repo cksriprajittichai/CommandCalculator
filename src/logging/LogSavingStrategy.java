@@ -5,7 +5,7 @@ import commands.Command;
 import java.io.File;
 import java.util.List;
 
-public abstract class FileSavingStrategy {
+public abstract class LogSavingStrategy {
 
     private StringBuilder contents = new StringBuilder();
 
